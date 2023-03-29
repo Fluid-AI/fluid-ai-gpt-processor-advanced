@@ -3,6 +3,11 @@ import uvicorn
 from fastapi import FastAPI, File, HTTPException, Depends, Body, UploadFile
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from fastapi.staticfiles import StaticFiles
+from routers import user as userRouter
+from dotenv import load_dotenv
+load_dotenv()
+import services.auth0 as auth0
+from starlette.middleware.base import BaseHTTPMiddleware
 
 from models.api import (
     DeleteRequest,
@@ -135,6 +140,8 @@ async def delete(
         print("Error:", e)
         raise HTTPException(status_code=500, detail="Internal Service Error")
 
+app.add_middleware(BaseHTTPMiddleware, dispatch=auth0.authorization_middleware)
+app.include_router(userRouter.router)
 
 @app.on_event("startup")
 async def startup():
